@@ -791,166 +791,65 @@ var result={
 
 ## 谈一下jquery中的bind，live，delegate，on区别
 
-```
-<ul id="members" data-role="listview" data-filter="true"><!-- ... more list items ... -->  
-    <li>  
-<h3>John Resig</h3>  
-<a href="detail.html?id=10">  
-<strong>jQuery Core Lead</strong>  
-   
-Boston, United States  
-</a></li>  
-<!-- ... more list items ... --></ul> 
-```
-**.bind()**
+***(1)、bind 【jQuery 1.3之前】***
 
-.bind()注册的事件直接指向相对应的DOM元素。这个方法从jQuery 1.0都有了，并且这个方法能够很酷的处理跨浏览器的事件绑定问题。对，这个方法用起来很方便。但是问题来了，就是各种各样的性能问题，如下：
-```
-/* The .bind() method attaches the event handler directly to the DOM 
-element in question ( "#members li a" ). The .click() method is 
-just a shorthand way to write the .bind() method. */  
-   
-$( "#members li a" ).bind( "click", function( e ) {} );  
-$( "#members li a" ).click( function( e ) {} ); 
-```
-**优点**
-- 跨浏览器
-- 非常方便和快捷地绑定事件
-- 简单的实现方法（.click() .hover() ,etc…）让它用起来很方便
-- 对于简单的ID选择器来说，使用.bind()不仅方便，而且当触发这个事件的时候能够即时响应。
+定义和用法：主要用于给选择到的元素上绑定特定事件类型的监听函数；
 
-**缺点**
+语法：bind(type,[data],function(eventObject))；
 
-- 这个方法会附加相同的处理程序到每一个匹配到的元素上
-- 对于动态添加的属于匹配到的元素，不会被触发事件的
-- 性能问题，对于处理大量的匹配元素的时候
-- 如果在页面加载前要处理添加事件的话，会影响加载效率的
+特点：
 
+　　(1)、适用于页面元素静态绑定。只能给调用它的时候已经存在的元素绑定事件，不能给未来新增的元素绑定事件。
 
-**.live()**
+　　(2)、当页面加载完的时候，你才可以进行bind()，所以可能产生效率问题。
 
-.live()方法使用的是事件委托的概念来执行所谓的“神奇方法”。调用.live()方法看起来和调用.bind()方法一样，非常方便。但是他们下面的实现原理却不同。.live()方法附加事件处理程序到根一级的document上来关联匹配到的元素和事件信息。通过注册事件处理程序到document上来允许事件处理程序通过冒泡来绑定事件和匹配的元素（译者：注意，事件其实在document上的）。一旦事件冒泡到document的时候，jQuery判断选择器和事件处理程序是否有匹配到的，如果有的话，则调用对应的事件处理程序。很明显的会在用户使用的过程中有性能问题，但是在绑定注册的时候是非常的迅速的。
+实例如下：$( "#members li a" ).bind( "click", function( e ) {} );
 
-```
-/* The .live() method attaches the event handler to the root level 
-document along with the associated selector and event information 
-( "#members li a" & "click" ) */  
-   
-$( "#members li a" ).live( "click", function( e ) {} );  
-```
-**优点**
+***(2)、live 【jQuery 1.3之后】***
 
-- 相对于.bind()的循环注册很多次事件处理程序来说，.live()只注册一次事件处理程序
-- 从.bind()更新到.live()的方法对程序更改很少，只需要替换“bind”为”live”
-- 对于动态添加的属于匹配到的元素，也能够“神奇”的执行处理程序
-- 在document元素没有全部加载完之前都能够几乎不花时间地绑定并触发事件
+定义和用法：主要用于给选择到的元素上绑定特定事件类型的监听函数；
 
-**缺点**
+语法：live(type, [data], fn);
 
-- 此方法在jQuery1.7的时候已经废除，你应该逐步从你的代码中替换掉该方法
-- 链接不能够正常的支持这个方法
-- 这个方法被抛弃是因为它只能够绑定事件处理程序到document上
-- event.stopPropagation()不再有效了，因为事件已经委托到了document上了
-- 由于所有的选择器和事件信息都是附加到了document上的，所以一个确定的事件要触发，必须通过大量的存储信息来匹配到
-- 由于事件都是委托到了document上的，所以如果DOM太深的话，会影响到性能的
+特点：
 
-**.delegate()**
+　　(1)、live方法并没有将监听器绑定到自己(this)身上，而是绑定到了this.context上了。
 
-.delegate()方法的行为有点类似.live()。但是不是把选择器和事件的信息附加到了document上，而是可以自行选择它要附加的DOM元素，这个技术可以让事件的委托正常工作。 如果你跳过了.live()的介绍和分析，请先跳回去读一下，接着我才能向你表述清楚下面的逻辑
+　　(2)、live正是利用了事件委托机制来完成事件的监听处理，把节点的处理委托给了document，新添加的元素不必再绑定一次监听器。
 
-```
-/*.delegate()的处理方法类似.live()，但是不是将事件处理程序附加到了document上，而是可以选择它在哪里（"#members"）。选择器和事件信息（"li a" 和 "click"）将会附加到“#members”元素上。 */  
-$( "#members" ).delegate( "li a", "click", function( e ) {} ); 
-```
-.delegate()方法是非常强大的。上面的代码会将事件处理程序以及选择器和事件信息附加到”#members”上。这个当然要比.live()将这些内容附加到document上有效的多了。另外有很多其他的一年问题也通过.delegate()这个方法解决了。请参阅下列大纲的详细列表。
+　　(3)、使用live（）方法但却只能放在直接选择的元素后面，不能在层级比较深，连缀的DOM遍历方法后面使用，即$(“ul”").live...可以，但$("body").find("ul").live...不行； 
 
-**优点**
+实例如下：$( document ).on( "click", "#members li a", function( e ) {} );
 
-- 可以自由选择附加的选择器和事件信息的位置
-- 链接也可以有效的支持了
-- jQuery仍然需要循环访问选择器和事件数据来确定匹配，但是因为能够选择这些信息附加的位置，所以通过匹配的量小很多了
-- 由于这种技术使用了事件委托，所以它能很好的动态处理添加到DOM元素
-- 如果你委托事件到了document上，你也可以在document全部准备完之前绑定和调用
+***(3)、delegate 【jQuery 1.4.2中引入】***
 
-**缺点**
+定义和用法：将监听事件绑定在就近的父级元素上
 
-- 方法从.bind()更改到.delegate()比较麻烦
-- 如果把选择器和事件数据附加到了document上，仍然需要很多的匹配信息，但是相对于.live()的存储量要小很多了
+语法：delegate(selector,type,[data],fn)
 
-你知道jQuery中的.bind() .live 和 .delegate()方法都是通过同一个新方法实现的–.on() （在jQuery1.7后），下面的代码片段来自jQuery 1.7.1 codebase in GitHub…
-```
-Code example:  
-  
-// ... more code ...  
-   
-bind: function( types, data, fn ) {  
-return this.on( types, null, data, fn );  
-},  
-unbind: function( types, fn ) {  
-return this.off( types, null, fn );  
-},  
-   
-live: function( types, data, fn ) {  
-jQuery( this.context ).on( types, this.selector, data, fn );  
-return this;  
-},  
-die: function( types, fn ) {  
-jQuery( this.context ).off( types, this.selector || "**", fn );  
-return this;  
-},  
-   
-delegate: function( selector, types, data, fn ) {  
-return this.on( types, selector, data, fn );  
-},  
-undelegate: function( selector, types, fn ) {  
-return arguments.length == 1 ?  
-this.off( selector, "**" ) :  
-this.off( types, selector, fn );  
-},  
-   
-// ... more code ...  
-```
+特点：
 
-这就意味着这个新方法的用法可以像下面这样
+　　(1)、选择就近的父级元素，因为事件可以更快的冒泡上去，能够在第一时间进行处理。
 
-```
-/* The jQuery .bind(), .live(), and .delegate() methods are just one 
-line pass throughs to the new jQuery 1.7 .on() method */  
-   
-// Bind  
-$( "#members li a" ).on( "click", function( e ) {} );  
-$( "#members li a" ).bind( "click", function( e ) {} );  
-   
-// Live  
-$( document ).on( "click", "#members li a", function( e ) {} );  
-$( "#members li a" ).live( "click", function( e ) {} );  
-   
-// Delegate  
-$( "#members" ).on( "click", "li a", function( e ) {} );  
-$( "#members" ).delegate( "li a", "click", function( e ) {} ); 
-```
+　　(2)、更精确的小范围使用事件代理，性能优于.live()。可以用在动态添加的元素上。
 
+实例如下：
 
-你会注意到，具体取决于我如何调用.on()方法来更改它的执行过程。你可以考虑“重载”.on()方法来具有不同的效果。这个方法给API带来了很多的一致性，并希望减少那些方法的混淆。
-优点
+$("#info_table").delegate("td","click",function(){/*显示更多信息*/});
 
-为各种事件绑定方法带来了统一性
-简化了jQuery代码库，并删除一个界别的重定向，因为通过调用这个方法实现了 .bind() .live() 和 .delegate()
-仍然提供了好用的.delegate()方法，但是也仍然对.bind()方法提供了支持
-缺点
+$("table").find("#info").delegate("td","click",function(){/*显示更多信息*/});
 
-因为调用这个方法的各个形式，会带来一些混乱
+***(4)、on 【1.7版本整合了之前的三种方式的新事件绑定机制】***
 
-**总结**
+定义和用法：将监听事件绑定到指定元素上。
 
-如果你已经对各种类型的事件绑定方法混淆的神志不清的话也别担心，这是因为历史遗留问题和API在随着时间的推移导致的。有些人认为这些方法作为魔法方法，但是一旦你发现他们如何工作的将会更好的利于你的项目。
+语法：on(type,[selector],[data],fn)
 
-从这篇文章中应该记住的要点：
-- 使用.bind()方法是很浪费资源的，因为它要匹配选择器中的每一项并且挨个设置相同的事件处理程序
-- 建议停止使用.live()方法，因为它已经被弃用了，由于他有很多的问题
-- .delegate()方法“很划算”用来处理性能和响应动态添加元素的时候
-- 新的.on()方法主要是可以实现.bind() .live() 甚至 .delegate()的功能
-- 建议使用.on()方法，如果你的项目使用了1.7+的jQuery的话
+实例如下：$("#info_table").on("click","td",function(){/*显示更多信息*/});参数的位置写法与delegate不一样。
+
+说明：on方法是当前JQuery推荐使用的事件绑定方法，附加只运行一次就删除函数的方法是one()。
+
+ 总结：.bind(), .live(), .delegate(),.on()分别对应的相反事件为：.unbind(),.die(), .undelegate(),.off()
 
 ## document.ready和document.load和$(function(){})有什么区别？
 
