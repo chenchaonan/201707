@@ -220,13 +220,15 @@ FF不能识别*，但能识别!important;
 ### 2.flex布局
 
 ```
-.left{ width:300px; height:400px; background:#99F; left:0;}
+.con{display:flex}
+.left{ width:300px; height:400px; background:#99F;}
 .main{ height:400px; background:#CCC; flex: 1}
-.right{ width:300px; height:400px; background:#99F; left:0;}
-
-<div class="left"></div>
-<div class="main"></div>
-<div class="right"></div>
+.right{ width:300px; height:400px; background:#99F; }
+<div class="con">
+   <div class="left"></div>
+   <div class="main"></div>
+   <div class="right"></div>
+</div>
 ```
 
 
